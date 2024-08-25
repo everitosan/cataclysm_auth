@@ -1,0 +1,10 @@
+[package]
+name = "auth"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cataclysm = "0.2.0-alpha.7"
+jsonwebtoken = "9.3.0"
+serde = {version = "1.0.209", features = ["derive"]}
+chrono = "0.4.38"

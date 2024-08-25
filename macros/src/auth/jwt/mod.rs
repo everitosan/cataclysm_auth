@@ -6,12 +6,11 @@ use proc_macro::TokenStream;
 use darling::ast::NestedMeta;
 use syn::{parse_macro_input, parse_quote, FnArg, Ident, ItemFn, Stmt};
 
-#[derive(FromMeta, Debug)]
+#[derive(FromMeta)]
 struct AuthParams {
-  #[darling(default)]
   prefix: String,
-  // #[darling(default)]
-  roles: Option<String>,
+  #[darling(default)]
+  roles: String
 }
 
 pub fn validate_jwt(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -27,14 +26,14 @@ pub fn validate_jwt(args: TokenStream, input: TokenStream) -> TokenStream {
     Err(e) => { return TokenStream::from(e.write_errors()) }
   };
 
-  // // Retrieve the name of catalcysm variable related to Request
+  // Retrieve the name of catalcysm variable related to Request
   let request_var = get_request_var_token(&item_fn);
   let req = parse_macro_input!(request_var as Ident);
 
-  // // Generate new statements for the resultant function
-  let statements = generate_statements(req, attr_args.prefix);
+  // Generate new statements for the resultant function
+  let statements = generate_statements(req, attr_args.prefix, attr_args.roles);
 
-  // // Preend statements into block 
+  // Preend statements into block 
   item_fn.block.stmts.splice(0..0, statements); 
   item_fn.to_token_stream().into()
 }
@@ -68,28 +67,26 @@ fn get_request_var_token(item_fn: &ItemFn) -> TokenStream {
 }
 
 // Add statemets that retriebe the token from header and validates if it contains the required role
-fn generate_statements(req: Ident, prefix: String) -> Vec<Stmt> {
+fn generate_statements(req: Ident, prefix: String, roles: String) -> Vec<Stmt> {
   let mut stmts: Vec<Stmt> = vec![];
+
   stmts.push(parse_quote!{
-    let token = match use cataclysm_auth::auth::jwt::request::extact_jwt(#req, #prefix) {
+    let token = match cataclysm_auth::auth::jwt::extact_from_request(#req, #prefix) {
       Some(t) => t,
       None => {
         return Response::forbidden();
       }
-    }
+    };
   });
-  
-  stmts.push(parse_quote!{
-    println!("{:#?}", token);
-  });
-  
-  
-  // stmts.push(parse_quote!{
-  //   let tkn = match splited.get(1) {
-  //     Some(jwt) => {jwt},
-  //     None => { return Response::forbidden(); }
-  //   };
-  // });
 
-  return stmts;
+  stmts.push(parse_quote!{
+    let claim = match cataclysm_auth::auth::jwt::validate_access(token, #roles) {
+      Some(c) => c,
+      None => {
+        return Response::forbidden();
+      }
+    };
+  });
+
+  stmts
 }
