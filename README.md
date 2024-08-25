@@ -46,3 +46,5 @@ pub struct BasicClaim {
 |--|--|--|
 | CATACLYSM_AUTH_SECRET | Secret used to create and validate tokens | " " |
 | CATACLYSM_AUTH_EXPRATION | Lifetime of token in minutes | 5|
+
+To see a full working example you can inspect and run [this example](./src/main.rs).
