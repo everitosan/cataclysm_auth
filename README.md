@@ -19,7 +19,7 @@ async fn only_for_admin(req: Request) -> Response {
 - **roles** list of roles allowed for this branch separaed by a comma: *"admin, visor, super, user"* 
 
 
-The library exposes a method to create a JWT thn can be parametrized by the use of [env-variables](#env-variables).
+The library exposes a method to create a JWT that can be parametrized by the use of [env-variables](#env-variables).
 
 ```rust
 use cataclysm_auth::auth::jwt::{create, TokenType};
