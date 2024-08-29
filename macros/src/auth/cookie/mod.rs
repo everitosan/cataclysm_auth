@@ -3,40 +3,41 @@ use proc_macro::TokenStream;
 use darling::ast::NestedMeta;
 use syn::{parse_macro_input, parse_quote, FnArg, Ident, ItemFn, Stmt};
 
-#[derive(FromMeta, Debug)]
+
+#[derive(FromMeta)]
 struct AuthParams {
+  key: String,
   #[darling(default)]
-  prefix: String,
-  // #[darling(default)]
-  roles: Option<String>,
+  roles: String
 }
 
-pub fn validate_jwt(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn validate(args: TokenStream, input: TokenStream) -> TokenStream {
   // Initial parse of TokenStreams
   let args_list = match NestedMeta::parse_meta_list(args.into()) {
     Ok(v) => v,
     Err(e) => { return TokenStream::from(Error::from(e).write_errors()); }
   };
   let mut item_fn = parse_macro_input!(input as ItemFn);
-  
+
   let attr_args = match AuthParams::from_list(&args_list) {
     Ok(v) => v,
     Err(e) => { return TokenStream::from(e.write_errors()) }
   };
 
-  // // Retrieve the name of catalcysm variable related to Request
-  let request_var = get_request_var_token(&item_fn);
-  let req = parse_macro_input!(request_var as Ident);
+  // Retrieve the name of catalcysm variable related to Request
+  let session_var = get_session_var_token(&item_fn);
+  let session = parse_macro_input!(session_var as Ident);
 
-  // // Generate new statements for the resultant function
-  let statements = generate_statements(req, attr_args.prefix);
+  // Generate new statements for the resultant function
+  let statements = generate_statements(attr_args.key, session, attr_args.roles);
 
-  // // Preend statements into block 
+  // Preend statements into block 
   item_fn.block.stmts.splice(0..0, statements); 
   item_fn.to_token_stream().into()
+
 }
 
-fn get_request_var_token(item_fn: &ItemFn) -> TokenStream {
+fn get_session_var_token(item_fn: &ItemFn) -> TokenStream {
   let fn_args: Vec<&FnArg> = item_fn.sig.inputs.iter().collect();
   let mut found = false;
   let mut tmp_string: TokenStream = TokenStream::new();
@@ -44,7 +45,7 @@ fn get_request_var_token(item_fn: &ItemFn) -> TokenStream {
   for v in fn_args {
     for token in v.into_token_stream().into_iter() {
       match token.to_string().as_str() {
-        "Request" => {
+        "Session" => {
           found = true;
           break;
         },
@@ -59,49 +60,30 @@ fn get_request_var_token(item_fn: &ItemFn) -> TokenStream {
   if found {
     return tmp_string
   } else {
-    panic!("Request is not used in the function signature")
+    panic!("Session is not used in the function signature")
   }
 
 }
 
+
 // Add statemets that retriebe the token from header and validates if it contains the required role
-fn generate_statements(req: Ident, prefix: String) -> Vec<Stmt> {
+fn generate_statements(cookie_key: String, session: Ident, roles: String) -> Vec<Stmt> {
   let mut stmts: Vec<Stmt> = vec![];
-  // If no header of authorization is provided, it will return forbidden
+
   stmts.push(parse_quote!{
-    let all_authorizations = match #req.headers.get("Authorization") {
-      Some(h) => h,
-      None => {
+    let user_roles = match cataclysm_auth::auth::cookie::extract_roles(#cookie_key, #session) {
+      Ok(us) => us,
+      Err(_) => {
         return Response::forbidden();
       }
     };
   });
-  
-  stmts.push(parse_quote!{
-    let required_header = all_authorizations.into_iter().filter(|h| h.contains(#prefix)).collect::<Vec<&std::string::String>>(); 
-  });
 
   stmts.push(parse_quote!{
-    if required_header.len() == 0 {
+    if let Err(e) = cataclysm_auth::auth::cookie::validate_access(user_roles, #roles) {
       return Response::forbidden();
-    } 
+    };
   });
-  
-  stmts.push(parse_quote!{
-    let splited: Vec<&str> = required_header[0].split(#prefix).collect();
-  });
-  
-  stmts.push(parse_quote!{
-    println!("{:#?}", splited);
-  });
-  
-  
-  // stmts.push(parse_quote!{
-  //   let tkn = match splited.get(1) {
-  //     Some(jwt) => {jwt},
-  //     None => { return Response::forbidden(); }
-  //   };
-  // });
 
-  return stmts;
+  stmts
 }

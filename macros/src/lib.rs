@@ -7,3 +7,8 @@ use proc_macro::TokenStream;
 pub fn jwt_protect(args: TokenStream, input: TokenStream) -> TokenStream {
   auth::jwt::validate_jwt(args, input)
 }
+
+#[proc_macro_attribute]
+pub fn cookie_protect(args: TokenStream, input: TokenStream) -> TokenStream {
+  auth::cookie::validate(args, input)
+}

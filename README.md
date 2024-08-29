@@ -2,7 +2,22 @@
 
 Library to manage authentication and authorization over Cataclysm Branches.
 
-## How to use it.
+## How to use.
+### 🍪 Cookie
+To protect a branch with a cookie, you should use the `cookie_protect` macro.
+
+```rust
+
+#[cookie_protect(key="roles", roles="admin")]
+async fn only_for_admin(session: Session) -> Response {
+  let message = format!("Hello super admin!");
+  Response::ok().body(message)
+}
+```
+- **key** refers to the key of the cookie where roles are setted 
+- **roles** is a list of allowed roles for this branch separaed by a comma: *"admin, visor, super, user"* 
+
+### JWT tokens
 
 To protect a branch with a jwt validation, you should use the `jwt_protect` macro.
 ```rust
@@ -16,10 +31,10 @@ async fn only_for_admin(req: Request) -> Response {
 }
 ```
 - **prefix** refers to the string placed before the JWT token 
-- **roles** list of roles allowed for this branch separaed by a comma: *"admin, visor, super, user"* 
+- **roles** is a list of allowed roles for this branch separaed by a comma: *"admin, visor, super, user"* 
 
 
-The library exposes a method to create a JWT that can be parametrized by the use of [env-variables](#env-variables).
+The library exposes a method to create a JWT that can be parametrized by the use of [env-variables](#jwt-env).
 
 ```rust
 use cataclysm_auth::auth::jwt::{create, TokenType};
@@ -40,11 +55,11 @@ pub struct BasicClaim {
 }
 ``` 
 
-## Env-variables
+#### JWT-env
 
 | Name | Description | Default |
 |--|--|--|
 | CATACLYSM_AUTH_SECRET | Secret used to create and validate tokens | " " |
 | CATACLYSM_AUTH_EXPRATION | Lifetime of token in minutes | 5|
 
-To see a full working example you can inspect and run [this example](./src/main.rs).
+To see a full working example you can inspect and run [this example](./src/bin/jwt-server.rs).

@@ -2,6 +2,7 @@ use colored::*;
 use cataclysm::{http::{Method, Request, Response}, Branch, Server};
 use cataclysm_auth::{jwt_protect, auth::jwt::{create, TokenType}};
 
+
 async fn index() -> Response {
   let message = format!("Hello world!");
   Response::ok().body(message)
