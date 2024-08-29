@@ -73,15 +73,15 @@ fn generate_statements(cookie_key: String, session: Ident, roles: String) -> Vec
   stmts.push(parse_quote!{
     let user_roles = match cataclysm_auth::auth::cookie::extract_roles(#cookie_key, #session) {
       Ok(us) => us,
-      Err(_) => {
-        return Response::forbidden();
+      Err(e) => {
+        return Response::forbidden().body(e.to_string());
       }
     };
   });
 
   stmts.push(parse_quote!{
     if let Err(e) = cataclysm_auth::auth::cookie::validate_access(user_roles, #roles) {
-      return Response::forbidden();
+      return Response::forbidden().body(e.to_string());
     };
   });
 

@@ -16,7 +16,7 @@ async fn only_for_admin(req: Request) -> Response {
  
 #[tokio::main]
 async fn main() {
-  dotenvy::dotenv().unwrap();
+  dotenvy::from_filename("jwt.env").unwrap();
 
   let addr = "localhost:8000";
 
