@@ -2,6 +2,15 @@
 
 Library to manage authentication and authorization over Cataclysm Branches.
 
+## Installation
+
+```toml
+[dependencies]
+tokio = "1.39.3"
+cataclysm = "0.3.0-beta.2"
+cataclysm-auth = { git = "https://github.com/everitosan/cataclysm_auth", version = "0.1.0" }
+```
+
 ## How to use.
 ### 🍪 Cookie
 To protect a branch with a cookie, you should use the `cookie_protect` macro.
