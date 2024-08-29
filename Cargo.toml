@@ -8,7 +8,7 @@ edition = "2021"
 macros = { path ="./macros" }
 auth = { path = "./auth" }
 
-cataclysm = "0.2.0-alpha.7"
+cataclysm = "0.3.0-beta.2"
 tokio = "1.39.3"
 dotenvy = "0.15.7"
 colored = "2.1.0"

@@ -66,17 +66,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-trait"
-version = "0.1.81"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0c28dcc82d7c8ead5cb13beb15405b57b8546e93215673ff8ca0349a028107"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.75",
-]
-
-[[package]]
 name = "auth"
 version = "0.1.0"
 dependencies = [
@@ -140,11 +129,10 @@ checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
 
 [[package]]
 name = "cataclysm"
-version = "0.2.0-beta.18"
+version = "0.3.0-beta.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7153b7fdc42a41b68860c4b3be1abb7de3c47459c9874502bf47ccb94d6e0955"
+checksum = "297bcd09876767aee799060c497a30002a1e55f0ad883ff9aa8f5f8b6332b9d6"
 dependencies = [
- "async-trait",
  "base64 0.21.7",
  "bytes",
  "chrono",
