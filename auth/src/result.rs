@@ -5,6 +5,10 @@ use thiserror::Error;
 pub enum Error {
   #[error("Invalid credential for this resource")]
   CredentialMissing,
+  #[error("Malformed credential: `{0}`")]
+  BadCredentialReceived(String),
+  #[error("Can't create credential: `{0}`")]
+  BadCredential(String),
   #[error("Unauthorized for this resource")]
   Unauthorized
 }

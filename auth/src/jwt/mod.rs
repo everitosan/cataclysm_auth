@@ -3,6 +3,7 @@ use chrono::Utc;
 use cataclysm::http::Request;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
+use crate::result::{Result, Error};
 
 struct JwtConfig {
   secret: String,
@@ -11,8 +12,8 @@ struct JwtConfig {
 
 impl JwtConfig {
   fn default() -> Self {
-    let secret = env::var("CATACLYSM_AUTH_SECRET").unwrap_or_default();
-    let expiration_str = env::var("CATACLYSM_AUTH_EXPRATION").unwrap_or("5".to_owned());
+    let secret = env::var("CATACLYSM_AUTH_JWT_SECRET").unwrap_or_default();
+    let expiration_str = env::var("CATACLYSM_AUTH_JWT_EXPRATION").unwrap_or("5".to_owned());
     let expiration = expiration_str.parse::<i64>().unwrap_or(5);
 
     JwtConfig {
@@ -35,7 +36,7 @@ pub enum TokenType {
 }
 
 // This function validates a JWT
-pub fn validate(jwt: String) -> Option<BasicClaim> {
+pub fn validate(jwt: String) -> Result<BasicClaim> {
   let config = JwtConfig::default();
   match decode::<BasicClaim>(
     &jwt,
@@ -43,16 +44,16 @@ pub fn validate(jwt: String) -> Option<BasicClaim> {
     &Validation::new(Algorithm::HS512)
   ) {
     Ok(decoded) => {
-      Some(decoded.claims)
+      Ok(decoded.claims)
     },
-    Err(_) => {
-      None
+    Err(e) => {
+      Err(Error::BadCredentialReceived(e.to_string()))
     }
   }
 }
 
 // This function creates a Basic JWT based in env vars 
-pub fn create(token_type: TokenType, sub: String, roles: Vec<String>) -> Option<String> {
+pub fn create(token_type: TokenType, sub: String, roles: Vec<String>) -> Result<String> {
   let config = JwtConfig::default();
   let duration = match token_type {
     TokenType::Refresh => {
@@ -75,11 +76,11 @@ pub fn create(token_type: TokenType, sub: String, roles: Vec<String>) -> Option<
   };
 
   let header = Header::new(Algorithm::HS512);
-  if let Ok(f) = encode(&header, &claims, &EncodingKey::from_secret(config.secret.as_bytes())) {
-    return Some(f)
+  match encode(&header, &claims, &EncodingKey::from_secret(config.secret.as_bytes())) {
+    Ok(f) => { Ok(f) },
+    Err(e) => { Err(Error::BadCredential(e.to_string())) }
   }
 
-  None
 }
 
 // This function extracts a JWT from Authorization header
@@ -102,7 +103,7 @@ pub fn extact_from_request(req: Request, prefix: &str) -> Option<String> {
   Some(response)
 }
 
-pub fn validate_access(token: String, all_allowed_roles: &str) -> Option<BasicClaim> {
+pub fn validate_access(token: String, all_allowed_roles: &str) -> Result<BasicClaim> {
   let claim = validate(token)?;
 
   if all_allowed_roles != "" {
@@ -110,11 +111,11 @@ pub fn validate_access(token: String, all_allowed_roles: &str) -> Option<BasicCl
     for role in allowed_roles {
       let r = role.trim().to_string();
       if claim.roles.contains(&r) {
-        return Some(claim)
+        return Ok(claim)
       }
     }
-    return None
+    return Err(Error::Unauthorized)
   }
 
-  Some(claim)
+  Ok(claim)
 }

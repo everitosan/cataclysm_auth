@@ -81,8 +81,8 @@ fn generate_statements(req: Ident, prefix: String, roles: String) -> Vec<Stmt> {
 
   stmts.push(parse_quote!{
     let claim = match cataclysm_auth::auth::jwt::validate_access(token, #roles) {
-      Some(c) => c,
-      None => {
+      Ok(c) => c,
+      Err(_) => {
         return Response::forbidden();
       }
     };

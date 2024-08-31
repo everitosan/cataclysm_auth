@@ -1,12 +1,11 @@
 # Cataclysm_Auth
 
-Library to manage authentication and authorization over Cataclysm Branches.
+Library to manage authentication and authorization with [Cataclysm](https://docs.rs/cataclysm/0.3.0-beta.2/cataclysm/index.html) framework.
 
 ## Installation
 
 ```toml
 [dependencies]
-tokio = "1.39.3"
 cataclysm = "0.3.0-beta.2"
 cataclysm-auth = { git = "https://github.com/everitosan/cataclysm_auth", version = "0.1.0" }
 ```
@@ -105,6 +104,6 @@ $ cargo run --bin jwt-server
 
 | Name | Description | Default |
 |--|--|--|
-| CATACLYSM_AUTH_SECRET | Secret used to create and validate tokens | " " |
-| CATACLYSM_AUTH_EXPRATION | Lifetime of token in minutes | 5|
+| CATACLYSM_AUTH_JWT_SECRET | Secret used to create and validate tokens | " " |
+| CATACLYSM_AUTH_JWT_EXPRATION | Lifetime of token in minutes | 5|
 
