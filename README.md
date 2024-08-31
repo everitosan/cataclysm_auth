@@ -56,7 +56,7 @@ $ cargo run --bin cookie-server
 | CATACLYSM_AUTH_COOKIE_MAX_AGE | Lifetime of cookie in seconds | 60 |
 | CATACLYSM_AUTH_COOKIE_SECURE | Cookie secure attribute | true |
 
-### JWT tokens
+### 🤖 Json Web Tokens
 
 To protect a branch with a jwt validation, you should use the `jwt_protect` macro.
 ```rust
